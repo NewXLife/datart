@@ -16,7 +16,7 @@
   "scripts": {
     "bootstrap": "npm install --legacy-peer-deps",
     "start": "craco start",
-    "build": "cross-env GENERATE_SOURCEMAP=false craco build",
+    "build": "export NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service build && cross-env GENERATE_SOURCEMAP=false craco build",
     "build:task": "rollup -c",
     "build:all": "npm run build:theme && npm run build:task && npm run build",
     "build:theme": "node scripts/extractAntdTheme",
