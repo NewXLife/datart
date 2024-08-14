@@ -19,38 +19,45 @@
 package datart.core.common;
 
 import datart.core.base.exception.Exceptions;
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
+import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public class JavascriptUtils {
+public class JavascriptUtils
+{
 
-    private static final ScriptEngineFactory engineFactory;
+    private static final ScriptEngine engineFactory;
 
     static {
-        engineFactory = new NashornScriptEngineFactory();
+        ScriptEngineManager manager = new ScriptEngineManager();
+        engineFactory = manager.getEngineByName("nashorn");
     }
 
-    public static Object invoke(Invocable invocable, String functionName, Object... args) throws Exception {
+    public static Object invoke(Invocable invocable, String functionName, Object... args)
+            throws Exception
+    {
         if (invocable != null) {
             return invocable.invokeFunction(functionName, args);
         }
         return null;
     }
 
-    public static Invocable load(String path) throws IOException, ScriptException {
+    public static Invocable load(String path)
+            throws IOException, ScriptException
+    {
         InputStream stream = JavascriptUtils.class.getClassLoader().getResourceAsStream(path);
         if (stream == null) {
             Exceptions.notFound(path);
         }
         try (InputStreamReader reader = new InputStreamReader(stream)) {
-            ScriptEngine engine = engineFactory.getScriptEngine();
+            ScriptEngine engine = engineFactory;
             engine.eval(reader);
             if (engine instanceof Invocable) {
                 return (Invocable) engine;
@@ -58,5 +65,4 @@ public class JavascriptUtils {
             return null;
         }
     }
-
 }

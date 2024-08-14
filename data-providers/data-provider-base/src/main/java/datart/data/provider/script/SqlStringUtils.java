@@ -25,7 +25,6 @@ import datart.core.common.ReflectUtils;
 import datart.core.data.provider.ScriptVariable;
 import datart.data.provider.base.DataProviderException;
 import datart.data.provider.jdbc.SqlSplitter;
-import jdk.nashorn.internal.parser.TokenType;
 import org.apache.calcite.avatica.util.Quoting;
 import org.apache.calcite.config.Lex;
 import org.apache.calcite.sql.SqlDialect;
@@ -35,6 +34,7 @@ import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.CharUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.xmlbeans.XmlCursor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +42,8 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SqlStringUtils {
+public class SqlStringUtils
+{
 
     public static final String REG_SQL_SINGLE_LINE_COMMENT = "-{2,}.*([\r\n])";
 
@@ -53,11 +54,12 @@ public class SqlStringUtils {
     /**
      * 替换脚本中的表达式类型变量
      *
-     * @param sql       原始SQL
+     * @param sql 原始SQL
      * @param variables 变量
      * @return 替换后的SQL
      */
-    public static String replaceFragmentVariables(String sql, List<ScriptVariable> variables) {
+    public static String replaceFragmentVariables(String sql, List<ScriptVariable> variables)
+    {
         if (CollectionUtils.isEmpty(variables)) {
             return sql;
         }
@@ -79,7 +81,8 @@ public class SqlStringUtils {
      * @param sql 原始SQL
      * @return 移除末尾分号的SQL
      */
-    public static String removeEndDelimiter(String sql) {
+    public static String removeEndDelimiter(String sql)
+    {
         if (StringUtils.isBlank(sql)) {
             return sql;
         }
@@ -88,12 +91,14 @@ public class SqlStringUtils {
         sql = sql.trim();
         if (sql.endsWith(SqlSplitter.DEFAULT_DELIMITER + "")) {
             return removeEndDelimiter(sql);
-        } else {
+        }
+        else {
             return sql;
         }
     }
 
-    public static String cleanupSql(String sql) {
+    public static String cleanupSql(String sql)
+    {
         //sql = sql.replaceAll(REG_SQL_SINGLE_LINE_COMMENT, " ");
         //sql = sql.replaceAll(REG_SQL_MULTI_LINE_COMMENT, " ");
         sql = sql.replace(CharUtils.CR, CharUtils.toChar(" "));
@@ -101,7 +106,8 @@ public class SqlStringUtils {
         return sql.trim();
     }
 
-    public static String cleanupSqlComments(String sql, SqlDialect sqlDialect) {
+    public static String cleanupSqlComments(String sql, SqlDialect sqlDialect)
+    {
         Quoting quoting = Lex.MYSQL.quoting;
         if (sqlDialect != null) {
             quoting = sqlDialect.configureParser(SqlParser.Config.DEFAULT).quoting();
@@ -114,10 +120,11 @@ public class SqlStringUtils {
             SqlSimpleParser.Token token = tokenizer.nextToken();
             if (token == null) {
                 break;
-            } else {
+            }
+            else {
                 Object tokenType = ReflectUtils.getFieldValue(token, "type");
                 Integer endIndex = (Integer) ReflectUtils.getFieldValue(tokenizer, "pos");
-                if (tokenType.toString().equals(TokenType.COMMENT.name())) {
+                if ("COMMENT".equals(tokenType.toString())) {
                     posList.add(new SqlParserPos(0, currPos, 0, endIndex));
                 }
                 currPos = endIndex;
@@ -138,7 +145,8 @@ public class SqlStringUtils {
      * @param sql
      * @return
      */
-    public static String rebuildSqlWithFragment(String sql) {
+    public static String rebuildSqlWithFragment(String sql)
+    {
         if (!sql.toLowerCase().startsWith("with")) {
             Matcher matcher = Pattern.compile(REG_WITH_SQL_FRAGMENT).matcher(sql);
             if (matcher.find()) {
@@ -158,17 +166,20 @@ public class SqlStringUtils {
         return sql;
     }
 
-    public static char[] findMissedParentheses(String str) {
+    public static char[] findMissedParentheses(String str)
+    {
         Stack<Integer> stack = new Stack<>();
         Stack<Integer> toRemove = new Stack<>();
         for (int i = 0; i < str.length(); i++) {
             char chr = str.charAt(i);
             if ('(' == chr) {
                 stack.push(i);
-            } else if (')' == chr) {
+            }
+            else if (')' == chr) {
                 if (stack.isEmpty()) {
                     toRemove.push(i);
-                } else {
+                }
+                else {
                     stack.pop();
                 }
             }
@@ -184,11 +195,11 @@ public class SqlStringUtils {
             char c = str.charAt(toRemove.get(i));
             if (c == '(') {
                 missedParentheses[i] = ')';
-            } else {
+            }
+            else {
                 missedParentheses[i] = '(';
             }
         }
         return missedParentheses;
     }
-
 }
